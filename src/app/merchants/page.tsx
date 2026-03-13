@@ -1,0 +1,129 @@
+"use client";
+
+import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { goldpayApi } from "@/lib/goldpay-api";
+import type { Merchant } from "@/lib/goldpay-api";
+import Link from "next/link";
+import { useRealtimeQuery } from "@/hooks/use-realtime-query";
+import { cn } from "@/lib/utils";
+
+function getMerchantStatusClass(status: Merchant["status"]) {
+  if (status === "active") return "merchant-status-pill-success";
+  if (status === "suspended") return "merchant-status-pill-error";
+  return "merchant-status-pill-neutral";
+}
+
+export default function MerchantsPage() {
+  const { data: merchants, error, isLoading } = useRealtimeQuery<Merchant[]>(
+    "merchants",
+    () => goldpayApi.merchants.list(),
+    { refetchIntervalMs: 30_000 }
+  );
+
+  if (isLoading) {
+    return (
+      <>
+        <Breadcrumb pageName="Merchants" />
+        <div className="merchant-card p-8">
+          <p className="text-dark-6 dark:text-dark-5">Loading merchants…</p>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Breadcrumb pageName="Merchants" />
+        <div className="merchant-card p-8">
+          <p className="text-red-500">{error.message}</p>
+        </div>
+      </>
+    );
+  }
+
+  const list = merchants ?? [];
+
+  return (
+    <>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Breadcrumb pageName="Merchants" />
+        <Link
+          href="/merchants/new"
+          className="merchant-primary-button px-6"
+        >
+          New Merchant
+        </Link>
+      </div>
+
+      <div className="merchant-card">
+        <div className="p-4 sm:p-7.5">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-none bg-[#FCFAF7] dark:bg-dark-2 [&>th]:py-4">
+                <TableHead className="min-w-[120px]">Name</TableHead>
+                <TableHead className="min-w-[180px]">Email</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Provider</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="py-8 text-center text-dark-6">
+                    No merchants yet. Create one to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                list.map((m) => (
+                  <TableRow key={m.id} className="border-[#eee] dark:border-dark-3">
+                    <TableCell>
+                      <Link href={`/merchants/${m.id}`} className="font-medium text-primary hover:underline">
+                        {m.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-dark dark:text-white">{m.email}</TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          "merchant-status-pill",
+                          getMerchantStatusClass(m.status),
+                        )}
+                      >
+                        {m.status}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {m.provider
+                        ? m.provider.display_name || m.provider.name
+                        : m.provider_id
+                        ? `#${m.provider_id}`
+                        : <span className="text-dark-6">—</span>}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Link
+                        href={`/merchants/${m.id}`}
+                        className="font-semibold text-primary transition hover:text-primary/80"
+                      >
+                        View
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    </>
+  );
+}
