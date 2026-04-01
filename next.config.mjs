@@ -5,6 +5,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  basePath: "/admin",
   outputFileTracingRoot: path.join(__dirname, ".."),
   images: {
     remotePatterns: [
