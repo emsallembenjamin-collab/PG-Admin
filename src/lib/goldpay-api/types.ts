@@ -26,6 +26,14 @@ export type SandboxOutcome =
   | "processing_then_failed";
 export type SandboxDeliveryMode = "direct" | "callback";
 
+/** Per-currency internal ledger row (admin `GET /merchants`, `GET /merchants/:id`). */
+export interface MerchantBalanceRow {
+  currency: string;
+  balance_available: number;
+  balance_locked: number;
+  balance_total: number;
+}
+
 export interface Merchant {
   id: number;
   name: string;
@@ -34,6 +42,16 @@ export interface Merchant {
   webhook_url: string | null;
   webhook_secret?: string | null;
   provider_id: number | null;
+  /** Balances per ISO 4217 currency (internal ledger). */
+  balances?: MerchantBalanceRow[];
+  /**
+   * Primary currency for summary (USD if present, else first by code).
+   * Flat amounts match this currency.
+   */
+  balance_currency?: string;
+  balance_available?: number;
+  balance_locked?: number;
+  balance_total?: number;
   created_at: string;
   updated_at: string;
   provider?: { id: number; name: string; display_name: string } | null;

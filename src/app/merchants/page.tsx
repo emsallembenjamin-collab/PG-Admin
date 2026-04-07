@@ -15,6 +15,35 @@ import Link from "next/link";
 import { useRealtimeQuery } from "@/hooks/use-realtime-query";
 import { cn } from "@/lib/utils";
 
+function formatLedgerAmount(amount: number | undefined, currency: string | undefined) {
+  const c = (currency || "USD").toUpperCase();
+  const n = typeof amount === "number" && Number.isFinite(amount) ? amount : 0;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: c,
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return `${n.toFixed(2)} ${c}`;
+  }
+}
+
+function ledgerSummary(m: Merchant): { primary: string; hint?: string } {
+  const rows = m.balances?.filter(Boolean) ?? [];
+  if (rows.length > 0) {
+    const primaryRow = rows.find((r) => r.currency?.toUpperCase() === "USD") ?? rows[0];
+    const primary = formatLedgerAmount(primaryRow.balance_total, primaryRow.currency);
+    if (rows.length > 1) {
+      return { primary, hint: `${rows.length} currencies` };
+    }
+    return { primary };
+  }
+  return {
+    primary: formatLedgerAmount(m.balance_total, m.balance_currency),
+  };
+}
+
 function getMerchantStatusClass(status: Merchant["status"]) {
   if (status === "active") return "merchant-status-pill-success";
   if (status === "suspended") return "merchant-status-pill-error";
@@ -73,13 +102,14 @@ export default function MerchantsPage() {
                 <TableHead className="min-w-[180px]">Email</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Provider</TableHead>
+                <TableHead className="min-w-[140px]">Ledger</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {list.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-8 text-center text-dark-6">
+                  <TableCell colSpan={6} className="py-8 text-center text-dark-6">
                     No merchants yet. Create one to get started.
                   </TableCell>
                 </TableRow>
@@ -108,6 +138,19 @@ export default function MerchantsPage() {
                         : m.provider_id
                         ? `#${m.provider_id}`
                         : <span className="text-dark-6">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      {(() => {
+                        const { primary, hint } = ledgerSummary(m);
+                        return (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-medium text-dark dark:text-white">{primary}</span>
+                            {hint ? (
+                              <span className="text-[11px] text-dark-6 dark:text-dark-5">{hint}</span>
+                            ) : null}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link

@@ -59,6 +59,20 @@ function maskApiKeyPrefix(keyPrefix: string) {
   return `${normalized}...******`;
 }
 
+function formatLedgerAmount(amount: number | undefined, currency: string | undefined) {
+  const c = (currency || "USD").toUpperCase();
+  const n = typeof amount === "number" && Number.isFinite(amount) ? amount : 0;
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: c,
+      maximumFractionDigits: 2,
+    }).format(n);
+  } catch {
+    return `${n.toFixed(2)} ${c}`;
+  }
+}
+
 function buildTransactionSnapshot(
   transactions: TransactionWithRelations[],
   total: number,
@@ -457,6 +471,69 @@ export default function MerchantDetailPage() {
             </>
           ) : (
             <p className="text-sm text-dark-6">No analytics available yet.</p>
+          )}
+        </div>
+
+        <div className="merchant-card p-6">
+          <div className="mb-5">
+            <h3 className="text-lg font-semibold text-dark dark:text-white">Internal ledger</h3>
+            <p className="mt-1 text-sm text-dark-6">
+              Platform-held balance per currency (available, locked in pending withdrawals, and total).
+            </p>
+          </div>
+
+          {merchant.balances && merchant.balances.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow className="border-none bg-[#FCFAF7] dark:bg-dark-2">
+                  <TableHead>Currency</TableHead>
+                  <TableHead className="text-right">Available</TableHead>
+                  <TableHead className="text-right">Locked</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {merchant.balances.map((row) => (
+                  <TableRow key={row.currency}>
+                    <TableCell className="font-medium">{row.currency}</TableCell>
+                    <TableCell className="text-right">
+                      {formatLedgerAmount(row.balance_available, row.currency)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatLedgerAmount(row.balance_locked, row.currency)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {formatLedgerAmount(row.balance_total, row.currency)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="rounded-[24px] border border-[#E8DED0] bg-[#FCFAF7] p-4 dark:border-dark-3 dark:bg-dark-2">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A7A61] dark:text-dark-6">
+                Summary ({merchant.balance_currency ?? "USD"})
+              </p>
+              <p className="mt-2 text-sm text-dark dark:text-white">
+                Available{" "}
+                <span className="font-semibold">
+                  {formatLedgerAmount(merchant.balance_available, merchant.balance_currency)}
+                </span>
+                {" · "}
+                Locked{" "}
+                <span className="font-semibold">
+                  {formatLedgerAmount(merchant.balance_locked, merchant.balance_currency)}
+                </span>
+                {" · "}
+                Total{" "}
+                <span className="font-semibold">
+                  {formatLedgerAmount(merchant.balance_total, merchant.balance_currency)}
+                </span>
+              </p>
+              <p className="mt-2 text-xs text-dark-6">
+                No per-currency rows yet; amounts reflect the primary currency only.
+              </p>
+            </div>
           )}
         </div>
 
