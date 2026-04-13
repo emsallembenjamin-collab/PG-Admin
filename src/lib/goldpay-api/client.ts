@@ -265,6 +265,13 @@ export const reconciliationApi = {
       method: "POST",
       body: JSON.stringify({ resolutionNotes, resolvedBy }),
     }),
+  replayCallback: (id: number) =>
+    request<{ message: string; deliveryTriggered: boolean }>(
+      `admin/reconciliation/discrepancies/${id}/replay-callback`,
+      {
+        method: "POST",
+      }
+    ),
 };
 
 export const notificationsApi = {

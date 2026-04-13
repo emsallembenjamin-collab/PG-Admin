@@ -31,6 +31,7 @@ export default function ReconciliationDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [notesByDiscrepancyId, setNotesByDiscrepancyId] = useState<Record<number, string>>({});
   const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [replayingId, setReplayingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id || isNaN(id)) return;
@@ -58,6 +59,28 @@ export default function ReconciliationDetailPage() {
       setError(err instanceof Error ? err.message : "Failed to resolve");
     } finally {
       setResolvingId(null);
+    }
+  };
+
+  const handleReplayCallback = async (discrepancyId: number) => {
+    setReplayingId(discrepancyId);
+    try {
+      await goldpayApi.reconciliation.replayCallback(discrepancyId);
+      const updated = await goldpayApi.reconciliation.get(id);
+      setRec(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to replay callback");
+    } finally {
+      setReplayingId(null);
+    }
+  };
+
+  const parseJson = (raw?: string | null): Record<string, unknown> | null => {
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as Record<string, unknown>;
+    } catch {
+      return null;
     }
   };
 
@@ -175,12 +198,22 @@ export default function ReconciliationDetailPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Expected / Actual</TableHead>
                   <TableHead>Resolution</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {discrepancies.map((d) => (
+                  (() => {
+                    const expected = parseJson(d.expected_value);
+                    const actual = parseJson(d.actual_value);
+                    const canReplay =
+                      d.status === "open" &&
+                      d.type === "status_mismatch" &&
+                      (d.description.toLowerCase().includes("callback") ||
+                        d.description.toLowerCase().includes("merchant webhook"));
+                    return (
                   <TableRow key={d.id}>
                     <TableCell className="font-medium">{d.id}</TableCell>
                     <TableCell className="capitalize">{d.type?.replace(/_/g, " ")}</TableCell>
@@ -196,12 +229,36 @@ export default function ReconciliationDetailPage() {
                       </span>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">{d.description}</TableCell>
+                    <TableCell className="max-w-xs text-xs text-dark-6">
+                      <div>
+                        <p className="font-semibold text-dark dark:text-white">Expected</p>
+                        <pre className="mt-1 whitespace-pre-wrap break-all">
+                          {expected ? JSON.stringify(expected, null, 2) : "—"}
+                        </pre>
+                      </div>
+                      <div className="mt-2">
+                        <p className="font-semibold text-dark dark:text-white">Actual</p>
+                        <pre className="mt-1 whitespace-pre-wrap break-all">
+                          {actual ? JSON.stringify(actual, null, 2) : "—"}
+                        </pre>
+                      </div>
+                    </TableCell>
                     <TableCell className="max-w-xs truncate text-dark-6">
                       {d.resolution_notes || "—"}
                     </TableCell>
                     <TableCell className="text-right">
                       {d.status === "open" && (
                         <div className="flex items-center justify-end gap-2">
+                          {canReplay && (
+                            <button
+                              type="button"
+                              disabled={replayingId !== null || resolvingId !== null}
+                              onClick={() => handleReplayCallback(d.id)}
+                              className="merchant-secondary-button px-3 py-1 text-sm disabled:opacity-50"
+                            >
+                              {replayingId === d.id ? "Replaying…" : "Replay Callback"}
+                            </button>
+                          )}
                           <input
                             type="text"
                             value={notesByDiscrepancyId[d.id] ?? ""}
@@ -231,6 +288,8 @@ export default function ReconciliationDetailPage() {
                       )}
                     </TableCell>
                   </TableRow>
+                    );
+                  })()
                 ))}
               </TableBody>
             </Table>
