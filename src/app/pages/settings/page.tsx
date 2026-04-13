@@ -49,6 +49,18 @@ export default function SettingsPage() {
             Add currencies and maintain exchange rates.
           </p>
         </Link>
+
+        <Link href="/fees" className="merchant-card p-5 transition hover:border-primary/30">
+          <p className="text-sm font-medium text-[#8A7A61] dark:text-dark-6">
+            System Resource
+          </p>
+          <h3 className="mt-2 text-xl font-bold text-dark dark:text-white">
+            Transaction Fees
+          </h3>
+          <p className="mt-2 text-sm text-dark-6">
+            Configure platform fee percentages for deposits and withdrawals.
+          </p>
+        </Link>
       </div>
 
       <div className="grid grid-cols-5 gap-6 xl:gap-8">

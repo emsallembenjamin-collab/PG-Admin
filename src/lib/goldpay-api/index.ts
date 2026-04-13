@@ -7,6 +7,7 @@ export {
   transactionsApi,
   reconciliationApi,
   notificationsApi,
+  systemFeeApi,
   setAuthToken,
   clearAuthToken,
 } from "./client";

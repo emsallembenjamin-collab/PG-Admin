@@ -84,6 +84,10 @@ export default function TransactionDetailPage() {
   if (!tx) return null;
 
   const sandbox = getSandboxMetadata(tx);
+  const amount = Number(tx.amount ?? 0);
+  const feePercentage = Number(tx.system_fee_percentage ?? 0);
+  const feeAmount = Number(tx.system_fee_amount ?? 0);
+  const settlementAmount = Number(tx.merchant_settlement_amount ?? amount);
 
   const runSandboxAction = async (
     label: string,
@@ -172,7 +176,19 @@ export default function TransactionDetailPage() {
             <div>
               <dt className="text-body-sm text-dark-6">Amount</dt>
               <dd className="font-medium text-dark dark:text-white">
-                {tx.amount} {tx.currency}
+                {amount.toFixed(2)} {tx.currency}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-body-sm text-dark-6">System fee</dt>
+              <dd className="font-medium text-dark dark:text-white">
+                {feePercentage.toFixed(2)}% ({feeAmount.toFixed(2)} {tx.currency})
+              </dd>
+            </div>
+            <div>
+              <dt className="text-body-sm text-dark-6">Settlement amount</dt>
+              <dd className="font-medium text-dark dark:text-white">
+                {settlementAmount.toFixed(2)} {tx.currency}
               </dd>
             </div>
             <div>

@@ -141,6 +141,9 @@ export interface Transaction {
   provider_id: number;
   type: TransactionType;
   amount: string;
+  system_fee_percentage?: string | number;
+  system_fee_amount?: string | number;
+  merchant_settlement_amount?: string | number;
   currency: string;
   status: TransactionStatus;
   external_id: string | null;
@@ -256,6 +259,19 @@ export interface ForceSandboxOutcomeBody {
 export interface ReplaySandboxCallbackBody {
   status?: Extract<TransactionStatus, "processing" | "succeeded" | "failed">;
   message?: string;
+}
+
+export interface SystemFeeSettings {
+  id: number;
+  deposit_fee_percentage: number | string;
+  withdrawal_fee_percentage: number | string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateSystemFeeSettingsBody {
+  deposit_fee_percentage?: number;
+  withdrawal_fee_percentage?: number;
 }
 
 export interface ReconciliationDiscrepancy {

@@ -42,7 +42,10 @@ export const NAV_DATA = [
       {
         title: "Settings",
         icon: Icons.User,
-        items: [{ title: "Settings", url: "/pages/settings" }],
+        items: [
+          { title: "Settings", url: "/pages/settings" },
+          { title: "Transaction Fees", url: "/fees" },
+        ],
       },
     ],
   },

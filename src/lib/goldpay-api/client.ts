@@ -29,6 +29,8 @@ import type {
   TransactionDetails,
   ForceSandboxOutcomeBody,
   ReplaySandboxCallbackBody,
+  SystemFeeSettings,
+  UpdateSystemFeeSettingsBody,
 } from "./types";
 
 function getToken(): string | null {
@@ -286,6 +288,15 @@ export const notificationsApi = {
     }),
 };
 
+export const systemFeeApi = {
+  get: () => request<SystemFeeSettings>("admin/system-fee"),
+  update: (body: UpdateSystemFeeSettingsBody) =>
+    request<SystemFeeSettings>("admin/system-fee", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
+};
+
 export const goldpayApi = {
   auth: authApi,
   merchants: merchantsApi,
@@ -294,4 +305,5 @@ export const goldpayApi = {
   transactions: transactionsApi,
   reconciliation: reconciliationApi,
   notifications: notificationsApi,
+  systemFee: systemFeeApi,
 };
