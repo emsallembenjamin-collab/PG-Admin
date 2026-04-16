@@ -85,8 +85,13 @@ export default function TransactionDetailPage() {
 
   const sandbox = getSandboxMetadata(tx);
   const amount = Number(tx.amount ?? 0);
-  const feePercentage = Number(tx.system_fee_percentage ?? 0);
-  const feeAmount = Number(tx.system_fee_amount ?? 0);
+  const serviceFeePercentage = Number(tx.system_fee_percentage ?? 0);
+  const serviceFeeAmount = Number(tx.system_fee_amount ?? 0);
+  const thirdPartyFeePercentage = Number(tx.third_party_fee_percentage ?? 0);
+  const thirdPartyFeeAmount = Number(tx.third_party_fee_amount ?? 0);
+  const totalFeeAmount = Number(
+    tx.total_fee_amount ?? serviceFeeAmount + thirdPartyFeeAmount,
+  );
   const settlementAmount = Number(tx.merchant_settlement_amount ?? amount);
 
   const runSandboxAction = async (
@@ -180,9 +185,21 @@ export default function TransactionDetailPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-body-sm text-dark-6">System fee</dt>
+              <dt className="text-body-sm text-dark-6">Service fee (ours)</dt>
               <dd className="font-medium text-dark dark:text-white">
-                {feePercentage.toFixed(2)}% ({feeAmount.toFixed(2)} {tx.currency})
+                {serviceFeePercentage.toFixed(2)}% ({serviceFeeAmount.toFixed(2)} {tx.currency})
+              </dd>
+            </div>
+            <div>
+              <dt className="text-body-sm text-dark-6">Third-party fee</dt>
+              <dd className="font-medium text-dark dark:text-white">
+                {thirdPartyFeePercentage.toFixed(2)}% ({thirdPartyFeeAmount.toFixed(2)} {tx.currency})
+              </dd>
+            </div>
+            <div>
+              <dt className="text-body-sm text-dark-6">Total fee</dt>
+              <dd className="font-medium text-dark dark:text-white">
+                {totalFeeAmount.toFixed(2)} {tx.currency}
               </dd>
             </div>
             <div>

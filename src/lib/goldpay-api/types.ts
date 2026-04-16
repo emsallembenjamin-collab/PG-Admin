@@ -143,6 +143,9 @@ export interface Transaction {
   amount: string;
   system_fee_percentage?: string | number;
   system_fee_amount?: string | number;
+  third_party_fee_percentage?: string | number;
+  third_party_fee_amount?: string | number;
+  total_fee_amount?: string | number;
   merchant_settlement_amount?: string | number;
   currency: string;
   status: TransactionStatus;
@@ -263,8 +266,12 @@ export interface ReplaySandboxCallbackBody {
 
 export interface SystemFeeSettings {
   id: number;
+  /** Our platform/service fee percentages. */
   deposit_fee_percentage: number | string;
   withdrawal_fee_percentage: number | string;
+  /** Third-party provider fee percentages (e.g. DPay). */
+  third_party_deposit_fee_percentage: number | string;
+  third_party_withdrawal_fee_percentage: number | string;
   created_at: string;
   updated_at: string;
 }
@@ -272,6 +279,8 @@ export interface SystemFeeSettings {
 export interface UpdateSystemFeeSettingsBody {
   deposit_fee_percentage?: number;
   withdrawal_fee_percentage?: number;
+  third_party_deposit_fee_percentage?: number;
+  third_party_withdrawal_fee_percentage?: number;
 }
 
 export interface ReconciliationDiscrepancy {

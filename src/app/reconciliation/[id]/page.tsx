@@ -111,7 +111,7 @@ export default function ReconciliationDetailPage() {
 
   if (!rec) return null;
 
-  const discrepancies = rec.discrepancies ?? [];
+  const discrepancies = Array.isArray(rec.discrepancies) ? rec.discrepancies : [];
 
   return (
     <>
@@ -204,16 +204,16 @@ export default function ReconciliationDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {discrepancies.map((d) => (
-                  (() => {
-                    const expected = parseJson(d.expected_value);
-                    const actual = parseJson(d.actual_value);
-                    const canReplay =
-                      d.status === "open" &&
-                      d.type === "status_mismatch" &&
-                      (d.description.toLowerCase().includes("callback") ||
-                        d.description.toLowerCase().includes("merchant webhook"));
-                    return (
+                {discrepancies.map((d) => {
+                  const expected = parseJson(d.expected_value);
+                  const actual = parseJson(d.actual_value);
+                  const description = String(d.description ?? "");
+                  const canReplay =
+                    d.status === "open" &&
+                    d.type === "status_mismatch" &&
+                    (description.toLowerCase().includes("callback") ||
+                      description.toLowerCase().includes("merchant webhook"));
+                  return (
                   <TableRow key={d.id}>
                     <TableCell className="font-medium">{d.id}</TableCell>
                     <TableCell className="capitalize">{d.type?.replace(/_/g, " ")}</TableCell>
@@ -228,7 +228,7 @@ export default function ReconciliationDetailPage() {
                         {d.status}
                       </span>
                     </TableCell>
-                    <TableCell className="max-w-xs truncate">{d.description}</TableCell>
+                    <TableCell className="max-w-xs truncate">{description || "—"}</TableCell>
                     <TableCell className="max-w-xs text-xs text-dark-6">
                       <div>
                         <p className="font-semibold text-dark dark:text-white">Expected</p>
@@ -288,9 +288,8 @@ export default function ReconciliationDetailPage() {
                       )}
                     </TableCell>
                   </TableRow>
-                    );
-                  })()
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

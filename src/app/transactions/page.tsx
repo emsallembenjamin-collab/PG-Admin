@@ -209,6 +209,8 @@ export default function TransactionsPage() {
                 <TableHead>Merchant</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Amount</TableHead>
+                <TableHead>Total Fee</TableHead>
+                <TableHead>Settlement</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -218,7 +220,7 @@ export default function TransactionsPage() {
               {list.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={10}
                     className="py-8 text-center text-dark-6"
                   >
                     No transactions found.
@@ -249,6 +251,18 @@ export default function TransactionsPage() {
                     <TableCell className="capitalize">{tx.type}</TableCell>
                     <TableCell>
                       {tx.amount} {tx.currency}
+                    </TableCell>
+                    <TableCell>
+                      {Number(
+                        tx.total_fee_amount ??
+                          Number(tx.system_fee_amount ?? 0) +
+                            Number(tx.third_party_fee_amount ?? 0),
+                      ).toFixed(2)}{" "}
+                      {tx.currency}
+                    </TableCell>
+                    <TableCell>
+                      {Number(tx.merchant_settlement_amount ?? tx.amount).toFixed(2)}{" "}
+                      {tx.currency}
                     </TableCell>
                     <TableCell>
                       <span
